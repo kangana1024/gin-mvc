@@ -5,8 +5,7 @@
         "editor.formatOnSave": true,
         "editor.codeActionsOnSave": {
             "source.organizeImports": true
-        },
-        "editor.snippetSuggestions": "none"
+        }
     },
     "[go.mod]": {
         "editor.formatOnSave": true,
