@@ -4,8 +4,8 @@ import "github.com/jinzhu/gorm"
 
 type Article struct {
 	gorm.Model
-	Title   string `gorm:"unique"`
-	Excerpt string
-	Body    string
-	Image   string
+	Title   string `gorm:"unique; not null"`
+	Excerpt string `gorm:"not null"`
+	Body    string `gorm:"not null"`
+	Image   string `gorm:"not null"`
 }
