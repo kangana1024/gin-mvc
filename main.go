@@ -1,6 +1,8 @@
 package main
 
 import (
+	"gin-mvc/configs"
+	"gin-mvc/migrations"
 	"gin-mvc/routes"
 	"log"
 	"os"
@@ -18,6 +20,12 @@ func main() {
 	if err != nil {
 		log.Fatal("Error Env")
 	}
+
+	configs.InitDB()
+	defer configs.CloseDB()
+	db := configs.GetDB()
+	migrations.Migrate(db)
+
 	r := gin.Default()
 	r.Static("/uploads", "./uploads")
 	os.MkdirAll("uploads", 0755)
@@ -29,5 +37,10 @@ func main() {
 	routes.Serve(r)
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
 
-	r.Run(":" + os.Getenv("PORT"))
+	err = r.Run(":" + os.Getenv("PORT"))
+
+	if err != nil {
+		log.Fatal("Run Fail")
+	}
+
 }
