@@ -14,6 +14,14 @@ type createCategoryForm struct {
 	Desc string `json:"desc" binding:"required"`
 }
 type categoryResponse struct {
+	Name     string `json:"name"`
+	Desc     string `json:"desc"`
+	Articles []struct {
+		ID    uint   `json:"id"`
+		Title string `json:"title"`
+	} `json:"articles"`
+}
+type allCategoryResponse struct {
 	Name string `json:"name"`
 	Desc string `json:"desc"`
 }
@@ -25,8 +33,8 @@ type Category struct {
 	DB *gorm.DB
 }
 type categoryPaging struct {
-	Items  []categoryResponse `json:"items"`
-	Paging *PagingResult      `json:"paging"`
+	Items  []allCategoryResponse `json:"items"`
+	Paging *PagingResult         `json:"paging"`
 }
 
 func (c *Category) FindAll(ctx *gin.Context) {
@@ -38,7 +46,7 @@ func (c *Category) FindAll(ctx *gin.Context) {
 		records: &categories,
 	}
 	paging := pagination.paginate()
-	var serializedCategories []categoryResponse
+	var serializedCategories []allCategoryResponse
 	copier.Copy(&serializedCategories, &categories)
 	ctx.JSON(http.StatusOK, gin.H{"categories": categoryPaging{
 		Items:  serializedCategories,
@@ -117,7 +125,7 @@ func (c *Category) findCategoryByID(ctx *gin.Context) (*models.Category, error) 
 
 	id := ctx.Param("id")
 
-	if err := c.DB.First(&category, id).Error; err != nil {
+	if err := c.DB.Preload("Articles").First(&category, id).Error; err != nil {
 		return nil, err
 	}
 

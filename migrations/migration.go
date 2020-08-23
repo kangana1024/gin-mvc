@@ -15,6 +15,9 @@ func Migrate(db *gorm.DB) {
 		[]*gormigrate.Migration{
 			m1597114456CreateArticleTable(),
 			m1597250312CreateCategoryTable(),
+			m1597252183AddCategoryIDToFieldArticle(),
+			m1597483362AddCategoryIDToFieldArticle(),
+			m1598019416CreateUserTable(),
 		},
 	)
 

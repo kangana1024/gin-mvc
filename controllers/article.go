@@ -26,11 +26,16 @@ type updateArticalForm struct {
 	Image   *multipart.FileHeader `form:"image"`
 }
 type articleResponse struct {
-	ID      uint   `json:"id"`
-	Title   string `json:"title"`
-	Excerpt string `json:"excerpt"`
-	Body    string `json:"body"`
-	Image   string `json:"image"`
+	ID         uint   `json:"id"`
+	Title      string `json:"title"`
+	Excerpt    string `json:"excerpt"`
+	Body       string `json:"body"`
+	Image      string `json:"image"`
+	CategoryID uint   `json:"categoryId"`
+	Category   struct {
+		ID   uint   `json:"id"`
+		Name string `json:"name"`
+	} `json:"category"`
 }
 type Article struct {
 	DB *gorm.DB
@@ -45,7 +50,7 @@ func (a *Article) FindAll(ctx *gin.Context) {
 
 	pagination := pagination{
 		ctx:     ctx,
-		query:   a.DB.Order("id desc"),
+		query:   a.DB.Preload("Category").Order("id desc"),
 		records: &articles,
 	}
 	paging := pagination.paginate()
@@ -164,7 +169,7 @@ func (a *Article) findArticleByID(ctx *gin.Context) (*models.Article, error) {
 
 	id := ctx.Param("id")
 
-	if err := a.DB.First(&article, id).Error; err != nil {
+	if err := a.DB.Preload("Category").First(&article, id).Error; err != nil {
 		return nil, err
 	}
 
