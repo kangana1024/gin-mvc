@@ -36,6 +36,10 @@ type articleResponse struct {
 		ID   uint   `json:"id"`
 		Name string `json:"name"`
 	} `json:"category"`
+	User struct {
+		Name   string `json:"name"`
+		Avatar string `json:"avatar"`
+	} `json:"user"`
 }
 type Article struct {
 	DB *gorm.DB
@@ -50,7 +54,7 @@ func (a *Article) FindAll(ctx *gin.Context) {
 
 	pagination := pagination{
 		ctx:     ctx,
-		query:   a.DB.Preload("Category").Order("id desc"),
+		query:   a.DB.Preload("User").Preload("Category").Order("id desc"),
 		records: &articles,
 	}
 	paging := pagination.paginate()
@@ -119,6 +123,8 @@ func (a *Article) Create(ctx *gin.Context) {
 		return
 	}
 	var article models.Article
+	user, _ := ctx.Get("sub")
+	article.User = *user.(*models.User)
 
 	copier.Copy(&article, &form)
 
@@ -169,7 +175,7 @@ func (a *Article) findArticleByID(ctx *gin.Context) (*models.Article, error) {
 
 	id := ctx.Param("id")
 
-	if err := a.DB.Preload("Category").First(&article, id).Error; err != nil {
+	if err := a.DB.Preload("User").Preload("Category").First(&article, id).Error; err != nil {
 		return nil, err
 	}
 

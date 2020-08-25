@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"gin-mvc/models"
+	"mime/multipart"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -11,6 +12,12 @@ import (
 
 type Auth struct {
 	DB *gorm.DB
+}
+
+type updateProfileForm struct {
+	Email  string                `form:"email"`
+	Name   string                `form:"name"`
+	Avatar *multipart.FileHeader `form:"avatar"`
 }
 
 type authForm struct {
@@ -23,19 +30,36 @@ type authResponse struct {
 	Email string `json:"email"`
 }
 
-type userResponse struct {
-	ID     uint   `json:"id"`
-	Email  string `json:"email"`
-	Avatar string `json:"avatar"`
-	Name   string `json:"name"`
-	Role   string `json:"role"`
-}
-
 func (a *Auth) GetProfile(ctx *gin.Context) {
+
+	sub, _ := ctx.Get("sub")
+
+	user := sub.(*models.User)
 	var serializedUser userResponse
 
-	copier.Copy(&serializedUser, &user)
+	copier.Copy(&serializedUser, user)
 
+	ctx.JSON(http.StatusOK, gin.H{"user": serializedUser})
+}
+
+func (a *Auth) UpdateProfile(ctx *gin.Context) {
+	var form updateProfileForm
+	if err := ctx.ShouldBind(&form); err != nil {
+		ctx.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
+		return
+	}
+
+	sub, _ := ctx.Get("sub")
+	user := sub.(*models.User)
+
+	setUserImage(ctx, user)
+	if err := a.DB.Model(user).Update(&form).Error; err != nil {
+		ctx.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
+		return
+	}
+
+	var serializedUser userResponse
+	copier.Copy(&serializedUser, user)
 	ctx.JSON(http.StatusOK, gin.H{"user": serializedUser})
 }
 

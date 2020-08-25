@@ -14,6 +14,14 @@ type User struct {
 	Role     string `gorm:"default:'Member'; not null"`
 }
 
+func (u *User) Promote() {
+	u.Role = "Editor"
+}
+
+func (u *User) Demote() {
+	u.Role = "Member"
+}
+
 // func (u *User) BeforeSave(scope *gorm.Scope) {
 // 	if u.Password == "" {
 // 		return

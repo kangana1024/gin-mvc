@@ -21,8 +21,23 @@ var identityKey = "sub"
 
 func Authenticate() *jwt.GinJWTMiddleware {
 	authMiddleware, err := jwt.New(&jwt.GinJWTMiddleware{
-		Key:         []byte(os.Getenv("SECRET_KEY")),
-		IdentityKey: identityKey,
+		Key:           []byte(os.Getenv("SECRET_KEY")),
+		IdentityKey:   identityKey,
+		TokenLookup:   "header: Authorization",
+		TokenHeadName: "Bearer",
+
+		IdentityHandler: func(c *gin.Context) interface{} {
+			var user models.User
+			claims := jwt.ExtractClaims(c)
+			id := claims[identityKey]
+
+			db := configs.GetDB()
+			if db.First(&user, uint(id.(float64))).RecordNotFound() {
+				return nil
+			}
+
+			return &user
+		},
 		Authenticator: func(c *gin.Context) (interface{}, error) {
 			var form login
 

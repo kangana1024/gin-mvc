@@ -11,4 +11,7 @@ type Article struct {
 	CategoryID uint
 
 	Category Category
+
+	UserID uint
+	User   User
 }
